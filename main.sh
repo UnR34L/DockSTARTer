@@ -13,19 +13,17 @@ readonly RED='\e[31m'
 readonly YLW='\e[33m'
 readonly ENDCOLOR='\e[0m'
 
+# # Log Functions
+readonly LOG_FILE="/tmp/dockstarter.log"
+info()    { echo -e "$(date +"%F %T") ${BLU}[INFO]${ENDCOLOR}       $*" | tee -a "${LOG_FILE}" >&2 ; }
+warning() { echo -e "$(date +"%F %T") ${YLW}[WARNING]${ENDCOLOR}    $*" | tee -a "${LOG_FILE}" >&2 ; }
+error()   { echo -e "$(date +"%F %T") ${RED}[ERROR]${ENDCOLOR}      $*" | tee -a "${LOG_FILE}" >&2 ; }
+fatal()   { echo -e "$(date +"%F %T") ${RED}[FATAL]${ENDCOLOR}      $*" | tee -a "${LOG_FILE}" >&2 ; exit 1 ; }
+
 # # Check Arch
-readonly ARCH=$(dpkg --print-architecture)
-
-# # Check Systemd
-if [[ -L "/sbin/init" ]]; then
-    readonly ISSYSTEMD=true
-else
-    readonly ISSYSTEMD=false
-fi
-
-# # Github Token for Travis CI
-if [[ ${CI:-} == true ]] && [[ ${TRAVIS:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS} == true ]]; then
-    readonly GH_HEADER="Authorization: token ${GH_TOKEN}"
+readonly ARCH=$(uname -m)
+if [[ ${ARCH} != "aarch64" ]] && [[ ${ARCH} != "armv7l" ]] && [[ ${ARCH} != "x86_64" ]]; then
+    fatal "Unsupported architecture."
 fi
 
 # # User/Group Information
@@ -35,12 +33,17 @@ readonly DETECTED_PGID=$(id -g "${DETECTED_PUID}" 2> /dev/null || true)
 readonly DETECTED_UGROUP=$(id -gn "${DETECTED_PUID}" 2> /dev/null || true)
 readonly DETECTED_HOMEDIR=$(eval echo "~${DETECTED_UNAME}" 2> /dev/null || true)
 
-# # Log Functions
-readonly LOG_FILE="/tmp/dockstarter.log"
-info()    { echo -e "$(date +"%F %T") ${BLU}[INFO]${ENDCOLOR}       $*" | tee -a "${LOG_FILE}" >&2 ; }
-warning() { echo -e "$(date +"%F %T") ${YLW}[WARNING]${ENDCOLOR}    $*" | tee -a "${LOG_FILE}" >&2 ; }
-error()   { echo -e "$(date +"%F %T") ${RED}[ERROR]${ENDCOLOR}      $*" | tee -a "${LOG_FILE}" >&2 ; }
-fatal()   { echo -e "$(date +"%F %T") ${RED}[FATAL]${ENDCOLOR}      $*" | tee -a "${LOG_FILE}" >&2 ; exit 1 ; }
+# # Github Token for Travis CI
+if [[ ${CI:-} == true ]] && [[ ${TRAVIS:-} == true ]] && [[ ${TRAVIS_SECURE_ENV_VARS} == true ]]; then
+    readonly GH_HEADER="Authorization: token ${GH_TOKEN}"
+fi
+
+# # Check Systemd
+if [[ -L "/sbin/init" ]]; then
+    readonly ISSYSTEMD=true
+else
+    readonly ISSYSTEMD=false
+fi
 
 # # Usage Information
 #/ usage: main.sh options
@@ -84,6 +87,7 @@ usage() {
 run_script() {
     local SCRIPTSNAME="${1:-}"; shift
     if [[ -f ${SCRIPTPATH}/scripts/${SCRIPTSNAME}.sh ]]; then
+        # shellcheck source=/dev/null
         source "${SCRIPTPATH}/scripts/${SCRIPTSNAME}.sh"
         ${SCRIPTSNAME} "$@";
     else
@@ -95,6 +99,7 @@ run_script() {
 run_test() {
     local TESTSNAME="${1:-}"; shift
     if [[ -f ${SCRIPTPATH}/tests/${TESTSNAME}.sh ]]; then
+        # shellcheck source=/dev/null
         source "${SCRIPTPATH}/tests/${TESTSNAME}.sh"
         ${TESTSNAME} "$@";
     else
@@ -105,6 +110,7 @@ run_test() {
 # # Main Function
 main() {
     run_script 'root_check'
+    # shellcheck source=scripts/cmdline.sh
     source "${SCRIPTPATH}/scripts/cmdline.sh"
     cmdline "${ARGS[@]:-}"
     run_script 'menu_main'

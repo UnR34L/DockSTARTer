@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 run_generate() {
-    run_script 'run_apt'
+    run_script 'update_system'
     run_script 'env_create'
     info "Enabling all apps."
     sed -i 's/_ENABLED=false/_ENABLED=true/' "${SCRIPTPATH}/compose/.env"
@@ -13,6 +13,7 @@ run_generate() {
     sed -i 's/DELUGEVPN_PORT_8112=8112/DELUGEVPN_PORT_8112=18112/' "${SCRIPTPATH}/compose/.env"
     sed -i 's/HEADPHONES_PORT_8181=8181/HEADPHONES_PORT_8181=18181/' "${SCRIPTPATH}/compose/.env"
     sed -i 's/PLEX_PORT_1900=1900/PLEX_PORT_1900=11900/' "${SCRIPTPATH}/compose/.env"
+    sed -i 's/PLEXREQUESTS_PORT_3000=3000/PLEXREQUESTS_PORT_3000=13000/' "${SCRIPTPATH}/compose/.env"
     sed -i 's/RUTORRENT_PORT_51413=51413/RUTORRENT_PORT_51413=41413/' "${SCRIPTPATH}/compose/.env"
     sed -i 's/RUTORRENT_PORT_6881=6881/RUTORRENT_PORT_6881=16881/' "${SCRIPTPATH}/compose/.env"
     sed -i 's/SABNZBDVPN_PORT_8080=8080/SABNZBDVPN_PORT_8080=28080/' "${SCRIPTPATH}/compose/.env"
