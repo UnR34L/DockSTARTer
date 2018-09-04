@@ -1,0 +1,22 @@
+services:
+  guacamole:
+    image:           guacamole/guacamole
+    container_name:  guacamole
+    restart:         always
+    environment:
+      - MYSQL_DATABASE=${GUACAMOLE_MYSQL_DATABASE}
+      - MYSQL_HOSTNAME=${GUACAMOLE_MYSQL_HOSTNAME}
+      - MYSQL_PASSWORD=${GUACAMOLE_MYSQL_PASSWORD}
+      - MYSQL_PORT=${GUACAMOLE_MYSQL_PORT}
+      - MYSQL_USER=${GUACAMOLE_MYSQL_USER}
+      - TZ=${TZ}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+  guacd:
+    image:           guacamole/guacd
+    container_name:  guacd
+    restart:         always
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
